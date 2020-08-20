@@ -70,8 +70,8 @@ if __name__ == '__main__':
     t_fl, data_fl = load_and_process_data(file_name, plot=False)
 
     ################## FDD model - manual
-    # fdd = FDD(0.60, 550)
-    # t_mod, data_mod = fdd.step_response(1, 700, K=1.7, plot=False, verbose=True)
+    # fdd = FDD(0.87, 90)
+    # t_mod, data_mod = fdd.step_response(1, 175, K=1.2, plot=False, verbose=True)
 
     # plt.figure()
     # plt.plot(t_fl, data_fl, label='data')
@@ -82,9 +82,10 @@ if __name__ == '__main__':
     # plt.title('Flanders')
     # plt.show()
 
+
     ################## FOPFDD model - manual
-    fopfdd = FOPFDD(1.2, 40, 0.77, 250)
-    z = ( 1.24940443, 30.94417546, 0.75784168, 272.26366618)
+    fopfdd = FOPFDD(1.2, 40, 0.77, 120)
+    z = ( 1.28991665e+00, 6.53533072e+01, 4.75404563e-01, 1.00729913e+04)
     params = (data_fl, 1, t_fl[-1]) 
     fopfdd = FOPFDD(*z)
     t_mod2, data_mod2 = fopfdd.step_response(1, t_fl[-1], verbose=True)
@@ -110,16 +111,16 @@ if __name__ == '__main__':
 
     ################ FOPFDD model - PSO
     # Create bounds
-    K_min, K_max = 1, 1.7
+    K_min, K_max = 1, 1.5
     tau_min, tau_max = 1, 100
-    alpha_min, alpha_max = 0.40, 0.85
-    L_min, L_max = 61**(1/0.85)*0.8, 61**(1/0.5)*1.2
+    alpha_min, alpha_max = 0.40, 0.95
+    L_min, L_max = 61**(1/0.95)*0.8, 61**(1/0.40)*1.2
     bounds = (np.array([K_min, tau_min, alpha_min, L_min]), np.array([K_max, tau_max, alpha_max, L_max]))
 
     # Initialize swarm
     options = {'c1': 0.5, 'c2': 0.3, 'w': 0.9}
     kwargs = {"ref_data": data_fl , "Ts": 1 , "Tmax": t_fl[-1]}
     optimizer = GlobalBestPSO(n_particles=10, dimensions=4, options=options, bounds=bounds)
-    cost, pos = optimizer.optimize(calculate_error_PSO, iters=1000, **kwargs)
+    cost, pos = optimizer.optimize(calculate_error_PSO, iters=50, **kwargs)
     plot_cost_history(cost_history=optimizer.cost_history)
     plt.show()

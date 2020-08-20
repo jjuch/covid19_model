@@ -89,7 +89,6 @@ class FDD:
             if arg.is_integer():
                 single_term = len(t) * [0]
             else:
-                ti = time.time()
                 try:
                     # Calculate the different terms of the single_term
                     factorial_i = math.factorial(i)
@@ -339,8 +338,12 @@ class FDDVarA:
         # Prepare alpha vector
         diff_start_idx = [0]
         diff_stop_idx = []
+        type_alpha = [] # 0: cst| 1: var
+
         if isinstance(self.alpha, float):
             alpha = len(t) * [self.alpha]
+            diff_stop_idx.append(len(alpha))
+            type_alpha.append(0)
         else:
             alpha = self.alpha
             diff_alpha = [1 if not math.isclose(a_diff, 0.0) else 0 for a_diff in np.diff(alpha, prepend=alpha[0])]
@@ -356,14 +359,13 @@ class FDDVarA:
                         add_idx_bool = False
                 elif not add_idx_bool:
                     add_idx_bool = True
-        diff_stop_idx.append(len(alpha))
+            diff_stop_idx.append(len(alpha))
 
-        type_alpha = [] # 0: cst| 1: var
-        for k in range(len(diff_start_idx)):
-            if sum(diff_alpha[diff_start_idx[k]: diff_stop_idx[k]]) == diff_stop_idx[k] - diff_start_idx[k]:
-                type_alpha.append(1)
-            else:
-                type_alpha.append(0)
+            for k in range(len(diff_start_idx)):
+                if sum(diff_alpha[diff_start_idx[k]: diff_stop_idx[k]]) == diff_stop_idx[k] - diff_start_idx[k]:
+                    type_alpha.append(1)
+                else:
+                    type_alpha.append(0)
 
         # Init parameters of loop
         i = 0
@@ -414,7 +416,7 @@ class FDDVarA:
         if len(q2) is not 0:
             I_norm[0:q2[-1] + 1] = (q2[-1] + 1) * [0]
         
-        I = [K * I_norm_el for I_norm_el in I_norm]
+        I = [float(K * I_norm_el) for I_norm_el in I_norm]
 
         if plot:
             plt.figure()
@@ -433,7 +435,7 @@ class FDDVarA:
 
 
 
-class FOPFDD(FDD):
+class FOPFDD(FDDVarA):
     def __init__(self, K, tau, alpha, L):
         super().__init__(alpha, L)
         self.K = K
