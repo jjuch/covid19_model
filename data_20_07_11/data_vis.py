@@ -1,6 +1,7 @@
 import csv
 import matplotlib.pyplot as plt
 import datetime
+import numpy as np
 
 def read_data(file_name:str):
     with open(file_name, 'r', newline='', encoding='utf-8') as f:
@@ -31,6 +32,8 @@ def cumulative_incidences_per_province(data:list, province_names:list, days_with
         plt.figure()
         plt.plot(time, cumulative_data)
         plt.title(title.join(province_names))
+        plt.grid()
+        plt.xticks(np.arange(min(time), max(time) + 1, 5.0))
         plt.show()
     return time, cumulative_data
 
@@ -82,12 +85,18 @@ if __name__ == '__main__':
     date_difference = data_date - start_date
     print(date_difference.days)
 
+    # Dates National Security Board
+    dates = [datetime.date(2020, 3, 14), datetime.date(2020, 3, 18), datetime.date(2020, 3, 27), datetime.date(2020, 4, 15), datetime.date(2020, 4, 24), datetime.date(2020, 5, 4), datetime.date(2020, 5, 11), datetime.date(2020, 5, 18), datetime.date(2020, 6, 8), datetime.date(2020, 7, 1), datetime.date(2020, 7, 10)]
+    dates_converted = [(d - start_date).days for d in dates]
+    print(dict(zip(dates, dates_converted)))
+
     
     # Vlaanderen
     t_fl, cum_data_fl = cumulative_incidences_per_province(data, ['Antwerpen', 'VlaamsBrabant', 'OostVlaanderen', 'Limburg', 'WestVlaanderen'], days_with_zero_cases=date_difference.days, normalized=normalize_bool, plot=True)
     # t_fl, data_fl = incidences_per_province(data, ['Antwerpen', 'VlaamsBrabant', 'OostVlaanderen', 'Limburg', 'WestVlaanderen'], days_with_zero_cases=date_difference.days, plot=True)
     if save_bool:
         save_data(t_fl, cum_data_fl, 'cum_cases_flanders.csv')
+    exit()
 
     # Antwerpen
     t_ant, cum_data_ant = cumulative_incidences_per_province(data, ['Antwerpen'], days_with_zero_cases=date_difference.days, normalized=normalize_bool, plot=True)

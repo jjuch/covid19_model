@@ -314,9 +314,9 @@ class FDDVarA:
 
 
 
-    def impulse_response(self, Ts:float, Tmax:float, K=1.0, N:int=200, P=20, plot=False, verbose=False):
+    def impulse_response(self, Ts:float, Tmax:float, Tstart:float=0, K:float=1.0, N:int=200, P=20, plot=False, verbose=False):
         '''
-        This function returns FDL's exp(-(L*s)^alpha) time response for the time vector t=[Ts:Ts:Tmax].
+        This function returns FDL's exp(-(L*s)^alpha) time response for the time vector t=[Tstart:Ts:Tmax].
         
         Parameters:
         -----------
@@ -324,8 +324,12 @@ class FDDVarA:
             : alpha: the fractional power ]0,1[
             : Ts: sampling time [s]
             : Tmax: the end value of the time vector [s]
-            : N: Quality of the output (The number of summation terms)
-            : P: Estimated peak size
+            : Tstart: the start value [s] (default: Ts)
+            : K: the size of the input impulse (default: 1.0)
+            : N: Quality of the output (The number of summation terms) (default: 200)
+            : P: Estimated peak size (default: 20)
+            : plot: Bool, plot the impulse response (default: False)
+            : verbose: Bool, write to terminal (default: False)
 
         Returns:
         --------
@@ -333,7 +337,9 @@ class FDDVarA:
             : I: impulse response vector
         '''
         # Produce time axis: the time power will converge as t > 1
-        t = np.arange(Ts, Tmax, Ts)
+        if Tstart == 0:
+            Tstart = Ts
+        t = np.arange(Tstart, Tmax, Ts)
 
         # Prepare alpha vector
         diff_start_idx = [0]
@@ -424,8 +430,8 @@ class FDDVarA:
             plt.show()
         return t, I
 
-    def step_response(self, Ts:float, Tmax:float, K=1.0, N:int=200, P=10**3, plot=False, verbose=False):
-        t, I = self.impulse_response(Ts, Tmax, K=K, N=N, P=P, verbose=verbose)
+    def step_response(self, Ts:float, Tmax:float, Tstart:float=0.0, K=1.0, N:int=200, P=10**3, plot=False, verbose=False):
+        t, I = self.impulse_response(Ts, Tmax, Tstart=Tstart, K=K, N=N, P=P, verbose=verbose)
         I_sum = np.cumsum(I)
         if plot:
             plt.figure()
@@ -441,8 +447,8 @@ class FOPFDD(FDDVarA):
         self.K = K
         self.tau = tau
 
-    def step_response(self, Ts:float, Tmax:float, N:int=200, P=20, plot=False, verbose=False):
-        t_fdd, I_fdd = super().impulse_response(Ts, Tmax, N=N, P=P, verbose=verbose)
+    def step_response(self, Ts:float, Tmax:float, Tstart:float=0.0, N:int=200, P=20, plot=False, verbose=False):
+        t_fdd, I_fdd = super().impulse_response(Ts, Tmax, Tstart=Tstart, N=N, P=P, verbose=verbose)
         sys_fo = control.tf(self.K, [self.tau, 1])
         t, y_fo = control.step_response(sys_fo, T=t_fdd)
         y_fofdd_full = np.convolve(y_fo, I_fdd)
